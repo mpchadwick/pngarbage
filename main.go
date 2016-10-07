@@ -69,17 +69,20 @@ func imgUrl(src string, url string) string {
 /**
  * Check whether a given PNG is garbage
  */
-func checkImg(src string) error {
+func checkImg(src string, ch chan string) {
 	garbage := true
-	r, err := http.Get(imgUrl(src, url))
+	lookup := imgUrl(src, url)
+	r, err := http.Get(lookup)
 	if err != nil {
-		return err
+		ch <- ""
+		return
 	}
 	defer r.Body.Close()
 
 	m, _, err := image.Decode(r.Body)
 	if err != nil {
-		return err
+		ch <- ""
+		return
 	}
 	bounds := m.Bounds()
 
@@ -96,10 +99,10 @@ Outer:
 	}
 
 	if garbage {
-		fmt.Println(src, " is garbage! Content-Length: ", r.ContentLength)
+		ch <- lookup + " is garbage! Content-Length: " + fmt.Sprintf("%v", r.ContentLength)
+	} else {
+		ch <- ""
 	}
-
-	return nil
 }
 
 func init() {
@@ -114,10 +117,17 @@ func main() {
 	pngs := findPngs(url)
 	fmt.Println("Number of pngs: ", len(pngs))
 
+	ch := make(chan string, len(pngs))
 	for _, src := range pngs {
-		err := checkImg(src)
-		if err != nil {
-			fmt.Println(err)
+		go checkImg(src, ch)
+	}
+
+	for i := 0; i < len(pngs); i++ {
+		select {
+		case r := <-ch:
+			if r != "" {
+				fmt.Println(r)
+			}
 		}
 	}
 }
