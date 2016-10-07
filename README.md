@@ -10,7 +10,7 @@ pngarbage will scan a URL and attempt to identify cases where PNGs are used when
 
 ### How?
 
-Currently, pngarbage will flag a png as "garbage" if it has no transparent pixels. Alpha transparency is one of the primary reasons to use a PNG and an image doesn't have any transparent pixels, there's a high likelyhood that JPEG could be used, resulting in serious savings.
+Currently, pngarbage will flag a png as "garbage" if it has no transparent pixels. Alpha transparency is one of the primary reasons to use a PNG and if an image doesn't have any transparent pixels, there's a high likelihood that JPEG could have been used, resulting in serious savings.
 
 ### Usage
 
