@@ -14,8 +14,10 @@ Currently, pngarbage will flag a png as "garbage" if it has no transparent pixel
 
 ### Usage
 
+Download the latest binary from the [releases page](https://github.com/mpchadwick/pngarbage/releases). Then, simply specify the URL to scan and run it
+
 ```
-➜  ~/go/bin/pngarbage -url="http://localhost:8080"
+➜  ./pngarbage -url="http://localhost:8080"
 ===========================
 > pngarbage
 ===========================
