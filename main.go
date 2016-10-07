@@ -24,6 +24,9 @@ func printBanner() {
 	fmt.Println("===========================")
 }
 
+/**
+ * Find all the PNGs on a web page
+ */
 func findPngs(url string) []string {
 	doc, err := goquery.NewDocument(url)
 	if err != nil {
@@ -42,6 +45,9 @@ func findPngs(url string) []string {
 	return pngs
 }
 
+/**
+ * Prepare the request url from the PNG's src attribute
+ */
 func imgUrl(src string, url string) string {
 	hasScheme, _ := regexp.MatchString("^https?://", src)
 	if hasScheme {
@@ -60,6 +66,42 @@ func imgUrl(src string, url string) string {
 	}
 }
 
+/**
+ * Check whether a given PNG is garbage
+ */
+func checkImg(src string) error {
+	garbage := true
+	r, err := http.Get(imgUrl(src, url))
+	if err != nil {
+		return err
+	}
+	defer r.Body.Close()
+
+	m, _, err := image.Decode(r.Body)
+	if err != nil {
+		return err
+	}
+	bounds := m.Bounds()
+
+Outer:
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			_, _, _, a := m.At(x, y).RGBA()
+			// A color's RGBA method returns values in the range [0, 65535].
+			if a != 65535 {
+				garbage = false
+				break Outer
+			}
+		}
+	}
+
+	if garbage {
+		fmt.Println(src, " is garbage! Content-Length: ", r.ContentLength)
+	}
+
+	return nil
+}
+
 func init() {
 	flag.StringVar(&url, "url", "", "The URL to check")
 	flag.Parse()
@@ -73,35 +115,9 @@ func main() {
 	fmt.Println("Number of pngs: ", len(pngs))
 
 	for _, src := range pngs {
-		garbage := true
-		lookup := imgUrl(src, url)
-		r, err := http.Get(lookup)
+		err := checkImg(src)
 		if err != nil {
 			fmt.Println(err)
-			continue
-		}
-		defer r.Body.Close()
-
-		m, _, err := image.Decode(r.Body)
-		if err != nil {
-			continue
-		}
-		bounds := m.Bounds()
-
-	Outer:
-		for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-			for x := bounds.Min.X; x < bounds.Max.X; x++ {
-				_, _, _, a := m.At(x, y).RGBA()
-				// A color's RGBA method returns values in the range [0, 65535].
-				if a != 65535 {
-					garbage = false
-					break Outer
-				}
-			}
-		}
-
-		if garbage {
-			fmt.Println(src, " is garbage! Content-Length: ", r.ContentLength)
 		}
 	}
 }
