@@ -14,6 +14,7 @@ import (
 	_ "image/png"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/dustin/go-humanize"
 )
 
 var url string
@@ -99,7 +100,7 @@ Outer:
 	}
 
 	if garbage {
-		ch <- lookup + " is garbage! Content-Length: " + fmt.Sprintf("%v", r.ContentLength)
+		ch <- lookup + " is garbage! Size: " + humanize.Bytes(uint64(r.ContentLength))
 	} else {
 		ch <- ""
 	}
