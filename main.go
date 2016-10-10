@@ -6,6 +6,7 @@ import (
 	"image"
 	"log"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 
@@ -18,6 +19,18 @@ import (
 )
 
 var url string
+
+var usageStr = `Supply a URL to scan
+
+e.g.
+./pngarbage -url="http://localhost:8080"
+`
+
+func usage() {
+	printBanner()
+	fmt.Println(usageStr)
+	os.Exit(1)
+}
 
 func printBanner() {
 	fmt.Println("===========================")
@@ -112,6 +125,9 @@ func init() {
 }
 
 func main() {
+	if url == "" {
+		usage()
+	}
 	printBanner()
 
 	fmt.Println("Checking: ", url)
