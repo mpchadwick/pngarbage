@@ -18,17 +18,31 @@ import (
 	"github.com/dustin/go-humanize"
 )
 
+const version = "0.2.0"
+
 var url string
 
-var usageStr = `Supply a URL to scan
+var usageStr = `To scan a URL...
 
-e.g.
-./pngarbage -url="http://localhost:8080"
+	Just supply the URL as follows
+
+	./pngarbage -url="http://localhost:8080"
+
+To check the version...
+
+	Just run the version command
+
+	./pngarbage version
 `
 
-func usage() {
+func showUsage() {
 	printBanner()
 	fmt.Println(usageStr)
+	os.Exit(1)
+}
+
+func showVersion() {
+	fmt.Println(version)
 	os.Exit(1)
 }
 
@@ -125,8 +139,11 @@ func init() {
 }
 
 func main() {
+	if flag.Arg(0) == "version" {
+		showVersion()
+	}
 	if url == "" {
-		usage()
+		showUsage()
 	}
 	printBanner()
 
