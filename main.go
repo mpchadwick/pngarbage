@@ -16,6 +16,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/dustin/go-humanize"
+	"github.com/aymerick/douceur/parser"
 )
 
 const version = "0.2.0"
@@ -62,6 +63,31 @@ func findPngs(url string) []string {
 	}
 
 	var pngs []string
+
+	doc.Find("style").Each(func(i int, s *goquery.Selection) {
+		html, err := s.Html()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		stylesheet, err := parser.Parse(html)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for _, rule := range stylesheet.Rules {
+			for _, declaration := range rule.Declarations {
+				if declaration.Property == "background-image" {
+					src := processBackgroundImageValue(declaration.Value)
+					matched, _ := regexp.MatchString(".png$", src)
+					if matched {
+						pngs = append(pngs, src)
+					}
+				}
+			}
+		}
+	})
+
 	doc.Find("img").Each(func(i int, s *goquery.Selection) {
 		src, _ := s.Attr("src")
 		matched, _ := regexp.MatchString(".png$", src)
@@ -71,6 +97,18 @@ func findPngs(url string) []string {
 	})
 
 	return pngs
+}
+
+/**
+ *
+ */
+func processBackgroundImageValue(value string) string {
+	// See: https://stackoverflow.com/a/20857703
+	re := regexp.MustCompile(`(?:\(['"]?)(.*?)(?:['"]?\))`)
+
+	matches := re.FindStringSubmatch(value)
+
+	return matches[1]
 }
 
 /**
